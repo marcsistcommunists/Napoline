@@ -81,8 +81,13 @@ public class GameWindow extends JFrame {
     private class MapPanel extends JPanel implements MouseListener {
         
         private static final int HEX_SIZE = 30;
-        private static final int HEX_WIDTH = (int)(HEX_SIZE * Math.sqrt(3));
-        private static final int HEX_HEIGHT = HEX_SIZE * 2;
+        // Flat-top ориентация: ширина = 2 * size, высота = sqrt(3) * size
+        private static final int HEX_WIDTH = HEX_SIZE * 2;
+        private static final int HEX_HEIGHT = (int)(HEX_SIZE * Math.sqrt(3));
+        // Расстояние между центрами по горизонтали: 3/4 * ширина
+        private static final int DX = (int)(HEX_WIDTH * 0.75);
+        // Расстояние между центрами по вертикали: высота
+        private static final int DY = HEX_HEIGHT;
         
         public MapPanel() {
             setBackground(new Color(30, 60, 30));
@@ -97,23 +102,48 @@ public class GameWindow extends JFrame {
             
             if (game == null || game.getGameMap() == null) return;
             
-            int centerX = getWidth() / 2;
-            int centerY = getHeight() / 2;
+            int startX = 50;
+            int startY = 50;
             
-            // Отрисовка гексов
-            for (Hex hex : game.getGameMap().getAllHexes()) {
-                drawHex(g2d, hex);
+            // Отрисовка гексов столбцами
+            for (int q = 0; q < game.getGameMap().getWidth(); q++) {
+                for (int r = 0; r < game.getGameMap().getHeight(); r++) {
+                    Hex hex = game.getGameMap().getHex(q, r);
+                    if (hex == null) continue;
+                    
+                    // Вычисляем экранные координаты центра
+                    // Для нечетных столбцов сдвиг по Y на половину высоты
+                    int xOffset = q * DX;
+                    int yOffset = r * DY;
+                    if (q % 2 == 1) {
+                        yOffset += DY / 2;
+                    }
+                    
+                    int centerX = startX + xOffset;
+                    int centerY = startY + yOffset;
+                    
+                    drawHex(g2d, hex, centerX, centerY);
+                }
             }
             
             // Отрисовка выделения
             if (selectedHex != null) {
-                drawHexHighlight(g2d, selectedHex, Color.YELLOW);
+                // Находим экранные координаты для выделенного гекса
+                int q = selectedHex.getQ();
+                int r = selectedHex.getR();
+                int xOffset = q * DX;
+                int yOffset = r * DY;
+                if (q % 2 == 1) {
+                    yOffset += DY / 2;
+                }
+                int centerX = startX + xOffset;
+                int centerY = startY + yOffset;
+                drawHexHighlight(g2d, selectedHex, centerX, centerY, Color.YELLOW);
             }
         }
         
-        private void drawHex(Graphics2D g2d, Hex hex) {
-            Polygon poly = hex.getPolygon(HEX_SIZE, 0, 0);
-            Point center = hex.getCenter(HEX_SIZE, 0, 0);
+        private void drawHex(Graphics2D g2d, Hex hex, int centerX, int centerY) {
+            Polygon poly = hex.getPolygon(HEX_SIZE, centerX, centerY);
             
             // Цвет по типу местности
             Color terrainColor = getTerrainColor(hex.terrain);
@@ -135,14 +165,14 @@ public class GameWindow extends JFrame {
             // Отрисовка города
             if (hex.city != null) {
                 g2d.setColor(Color.WHITE);
-                g2d.fillOval(center.x - 5, center.y - 5, 10, 10);
+                g2d.fillOval(centerX - 5, centerY - 5, 10, 10);
                 g2d.setColor(Color.BLACK);
-                g2d.drawOval(center.x - 5, center.y - 5, 10, 10);
+                g2d.drawOval(centerX - 5, centerY - 5, 10, 10);
             }
             
             // Отрисовка армий
             for (Army army : hex.getArmies()) {
-                drawArmy(g2d, center.x, center.y, army);
+                drawArmy(g2d, centerX, centerY, army);
             }
         }
         
@@ -187,7 +217,15 @@ public class GameWindow extends JFrame {
             g2d.drawString(count, x - textWidth/2, y + size + 10);
         }
         
+        private void drawHexHighlight(Graphics2D g2d, Hex hex, int centerX, int centerY, Color color) {
+            Polygon poly = hex.getPolygon(HEX_SIZE, centerX, centerY);
+            g2d.setColor(color);
+            g2d.setStroke(new BasicStroke(3));
+            g2d.drawPolygon(poly);
+        }
+        
         private void drawHexHighlight(Graphics2D g2d, Hex hex, Color color) {
+            // Для обратной совместимости - но теперь не используется
             Polygon poly = hex.getPolygon(HEX_SIZE, 0, 0);
             g2d.setColor(color);
             g2d.setStroke(new BasicStroke(3));
@@ -198,15 +236,33 @@ public class GameWindow extends JFrame {
         public void mouseClicked(MouseEvent e) {
             if (game == null) return;
             
+            int startX = 50;
+            int startY = 50;
+            
             // Поиск ближайшего гекса
             Hex closestHex = null;
             int minDistance = Integer.MAX_VALUE;
             
-            for (Hex hex : game.getGameMap().getAllHexes()) {
-                if (hex.contains(e.getX(), e.getY(), HEX_SIZE, 0, 0)) {
-                    closestHex = hex;
-                    break;
+            for (int q = 0; q < game.getGameMap().getWidth(); q++) {
+                for (int r = 0; r < game.getGameMap().getHeight(); r++) {
+                    Hex hex = game.getGameMap().getHex(q, r);
+                    if (hex == null) continue;
+                    
+                    // Вычисляем экранные координаты центра
+                    int xOffset = q * DX;
+                    int yOffset = r * DY;
+                    if (q % 2 == 1) {
+                        yOffset += DY / 2;
+                    }
+                    int centerX = startX + xOffset;
+                    int centerY = startY + yOffset;
+                    
+                    if (hex.contains(e.getX(), e.getY(), HEX_SIZE, centerX, centerY)) {
+                        closestHex = hex;
+                        break;
+                    }
                 }
+                if (closestHex != null) break;
             }
             
             selectedHex = closestHex;
