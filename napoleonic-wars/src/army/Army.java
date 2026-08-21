@@ -172,6 +172,6 @@ public class Army {
     @Override
     public String toString() {
         return String.format("Army(%s, %s) at (%d,%d) [%d regiments]", 
-            id, name, position != null ? position.q : 0, position != null ? position.r : 0, regiments.size());
+            id, name, position != null ? position.getQ() : 0, position != null ? position.getR() : 0, regiments.size());
     }
 }

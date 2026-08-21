@@ -102,61 +102,47 @@ public class GameWindow extends JFrame {
             
             // Отрисовка гексов
             for (Hex hex : game.getGameMap().getAllHexes()) {
-                Point screenPos = hexToScreen(hex.q, hex.r, centerX, centerY);
-                drawHex(g2d, screenPos.x, screenPos.y, hex);
+                drawHex(g2d, hex);
             }
             
             // Отрисовка выделения
             if (selectedHex != null) {
-                Point screenPos = hexToScreen(selectedHex.q, selectedHex.r, centerX, centerY);
-                drawHexHighlight(g2d, screenPos.x, screenPos.y, Color.YELLOW);
+                drawHexHighlight(g2d, selectedHex, Color.YELLOW);
             }
         }
         
-        private Point hexToScreen(int q, int r, int centerX, int centerY) {
-            int x = centerX + (int)(HEX_WIDTH * q + HEX_WIDTH / 2f * r);
-            int y = centerY + (int)(HEX_HEIGHT * 3f / 4f * r);
-            return new Point(x, y);
-        }
-        
-        private void drawHex(Graphics2D g2d, int x, int y, Hex hex) {
-            int[] xPoints = new int[6];
-            int[] yPoints = new int[6];
-            
-            for (int i = 0; i < 6; i++) {
-                double angle = Math.PI / 3 * i;
-                xPoints[i] = x + (int)(HEX_SIZE * Math.cos(angle));
-                yPoints[i] = y + (int)(HEX_SIZE * Math.sin(angle));
-            }
+        private void drawHex(Graphics2D g2d, Hex hex) {
+            Polygon poly = hex.getPolygon(HEX_SIZE, 0, 0);
+            Point center = hex.getCenter(HEX_SIZE, 0, 0);
             
             // Цвет по типу местности
             Color terrainColor = getTerrainColor(hex.terrain);
             g2d.setColor(terrainColor);
-            g2d.fillPolygon(xPoints, yPoints, 6);
+            g2d.fillPolygon(poly);
             
             // Цвет региона по владельцу
             if (hex.region != null && hex.region.getOwnerId() != null) {
                 Color ownerColor = getOwnerColor(hex.region.getOwnerId());
                 g2d.setColor(ownerColor);
                 g2d.setStroke(new BasicStroke(2));
-                g2d.drawPolygon(xPoints, yPoints, 6);
+                g2d.drawPolygon(poly);
             } else {
                 g2d.setColor(Color.BLACK);
                 g2d.setStroke(new BasicStroke(1));
-                g2d.drawPolygon(xPoints, yPoints, 6);
+                g2d.drawPolygon(poly);
             }
             
             // Отрисовка города
             if (hex.city != null) {
                 g2d.setColor(Color.WHITE);
-                g2d.fillOval(x - 5, y - 5, 10, 10);
+                g2d.fillOval(center.x - 5, center.y - 5, 10, 10);
                 g2d.setColor(Color.BLACK);
-                g2d.drawOval(x - 5, y - 5, 10, 10);
+                g2d.drawOval(center.x - 5, center.y - 5, 10, 10);
             }
             
             // Отрисовка армий
             for (Army army : hex.getArmies()) {
-                drawArmy(g2d, x, y, army);
+                drawArmy(g2d, center.x, center.y, army);
             }
         }
         
@@ -201,39 +187,25 @@ public class GameWindow extends JFrame {
             g2d.drawString(count, x - textWidth/2, y + size + 10);
         }
         
-        private void drawHexHighlight(Graphics2D g2d, int x, int y, Color color) {
-            int[] xPoints = new int[6];
-            int[] yPoints = new int[6];
-            
-            for (int i = 0; i < 6; i++) {
-                double angle = Math.PI / 3 * i;
-                xPoints[i] = x + (int)(HEX_SIZE * Math.cos(angle));
-                yPoints[i] = y + (int)(HEX_SIZE * Math.sin(angle));
-            }
-            
+        private void drawHexHighlight(Graphics2D g2d, Hex hex, Color color) {
+            Polygon poly = hex.getPolygon(HEX_SIZE, 0, 0);
             g2d.setColor(color);
             g2d.setStroke(new BasicStroke(3));
-            g2d.drawPolygon(xPoints, yPoints, 6);
+            g2d.drawPolygon(poly);
         }
         
         @Override
         public void mouseClicked(MouseEvent e) {
             if (game == null) return;
             
-            int centerX = getWidth() / 2;
-            int centerY = getHeight() / 2;
-            
             // Поиск ближайшего гекса
             Hex closestHex = null;
             int minDistance = Integer.MAX_VALUE;
             
             for (Hex hex : game.getGameMap().getAllHexes()) {
-                Point screenPos = hexToScreen(hex.q, hex.r, centerX, centerY);
-                int distance = (int)Math.hypot(screenPos.x - e.getX(), screenPos.y - e.getY());
-                
-                if (distance < HEX_SIZE && distance < minDistance) {
-                    minDistance = distance;
+                if (hex.contains(e.getX(), e.getY(), HEX_SIZE, 0, 0)) {
                     closestHex = hex;
+                    break;
                 }
             }
             
@@ -275,7 +247,7 @@ public class GameWindow extends JFrame {
             sb.append("Игрок: ").append(game.getCurrentPlayerId()).append("\n\n");
             
             if (hex != null) {
-                sb.append("Гекс: (").append(hex.q).append(",").append(hex.r).append(")\n");
+                sb.append("Гекс: (").append(hex.getQ()).append(",").append(hex.getR()).append(")\n");
                 sb.append("Местность: ").append(hex.terrain.getName()).append("\n");
                 
                 if (hex.region != null) {
@@ -374,7 +346,7 @@ public class GameWindow extends JFrame {
             if (choice >= 0 && selectedHex != null) {
                 int[][] directions = {{0, -1}, {1, -1}, {1, 0}, {0, 1}, {-1, 1}, {-1, 0}};
                 int[] dir = directions[choice];
-                Hex targetHex = game.getGameMap().getHex(selectedHex.q + dir[0], selectedHex.r + dir[1]);
+                Hex targetHex = game.getGameMap().getHex(selectedHex.getQ() + dir[0], selectedHex.getR() + dir[1]);
                 
                 if (targetHex != null) {
                     if (game.moveArmy(selectedArmy, targetHex)) {

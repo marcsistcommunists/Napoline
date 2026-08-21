@@ -2,14 +2,21 @@ package map;
 
 import army.Army;
 import java.util.*;
+// Не импортируем java.awt.* чтобы избежать конфликта с java.awt.List
 
 /**
  * Гекс - базовая клетка глобальной карты.
+ * Использует offset координаты (col, row) для хранения и отрисовки,
+ * и axial координаты (q, r) для вычислений.
  */
 public class Hex {
-    // Осевые координаты (q, r)
-    public final int q;
-    public final int r;
+    // Offset координаты (для хранения в карте и отрисовки)
+    private final int col;
+    private final int row;
+    
+    // Axial координаты (вычисляются из offset)
+    private final int q;
+    private final int r;
     
     // Тип местности
     public TerrainType terrain;
@@ -21,47 +28,132 @@ public class Hex {
     public City city;
     
     // Армии на гексе
-    private final List<Army> armies = new ArrayList<>();
+    private final java.util.List<Army> armies = new java.util.ArrayList<>();
     
-    public Hex(int q, int r) {
-        this.q = q;
-        this.r = r;
+    // Кэш полигона для отрисовки
+    private java.awt.Polygon cachedPolygon;
+    private java.awt.Point cachedCenter;
+    private int lastHexSize = -1;
+    private int lastXOffset = -1;
+    private int lastYOffset = -1;
+    
+    public Hex(int col, int row) {
+        this.col = col;
+        this.row = row;
+        // Конвертация из offset (odd-r) в axial
+        this.q = col - (row - (row & 1)) / 2;
+        this.r = row;
         this.terrain = TerrainType.PLAIN;
     }
     
-    public Hex(int q, int r, TerrainType terrain) {
-        this.q = q;
-        this.r = r;
+    public Hex(int col, int row, TerrainType terrain) {
+        this.col = col;
+        this.row = row;
+        // Конвертация из offset (odd-r) в axial
+        this.q = col - (row - (row & 1)) / 2;
+        this.r = row;
         this.terrain = terrain;
     }
     
-    /**
-     * Получить кубические координаты из осевых.
-     */
-    public int getX() { return q; }
-    public int getY() { return -q - r; }
-    public int getZ() { return r; }
+    // Геттеры для offset координат
+    public int getCol() { return col; }
+    public int getRow() { return row; }
+    
+    // Геттеры для axial координат
+    public int getQ() { return q; }
+    public int getR() { return r; }
     
     /**
-     * Расстояние до другого гекса в гексах.
+     * Получить центр гекса в пикселях.
      */
-    public int distanceTo(Hex other) {
-        return (Math.abs(getX() - other.getX()) + 
-                Math.abs(getY() - other.getY()) + 
-                Math.abs(getZ() - other.getZ())) / 2;
+    public java.awt.Point getCenter(int hexSize, int xOffset, int yOffset) {
+        if (cachedCenter != null && lastHexSize == hexSize && 
+            lastXOffset == xOffset && lastYOffset == yOffset) {
+            return cachedCenter;
+        }
+        
+        // Ширина и высота гекса для flat-top ориентации
+        double width = hexSize * Math.sqrt(3);
+        double height = hexSize * 2;
+        
+        // Базовое положение
+        double x = xOffset + width * (col + 0.5);
+        // Сдвиг нечетных рядов вправо на половину ширины
+        if ((row & 1) == 1) {
+            x += width / 2;
+        }
+        
+        double y = yOffset + height * 0.75 * row + hexSize;
+        
+        cachedCenter = new java.awt.Point((int)Math.round(x), (int)Math.round(y));
+        lastHexSize = hexSize;
+        lastXOffset = xOffset;
+        lastYOffset = yOffset;
+        
+        return cachedCenter;
     }
     
     /**
-     * Получить соседние гексы.
+     * Получить полигон гекса для отрисовки.
      */
-    public List<Hex> getNeighbors() {
-        List<Hex> neighbors = new ArrayList<>(6);
-        int[][] directions = {
-            {1, 0}, {1, -1}, {0, -1},
-            {-1, 0}, {-1, 1}, {0, 1}
-        };
+    public java.awt.Polygon getPolygon(int hexSize, int xOffset, int yOffset) {
+        if (cachedPolygon != null && lastHexSize == hexSize && 
+            lastXOffset == xOffset && lastYOffset == yOffset) {
+            return cachedPolygon;
+        }
+        
+        java.awt.Point center = getCenter(hexSize, xOffset, yOffset);
+        int[] xPoints = new int[6];
+        int[] yPoints = new int[6];
+        
+        // Углы для flat-top гекса: 0°, 60°, 120°, 180°, 240°, 300°
+        for (int i = 0; i < 6; i++) {
+            double angle = Math.toRadians(60 * i);
+            xPoints[i] = (int)Math.round(center.x + hexSize * Math.cos(angle));
+            yPoints[i] = (int)Math.round(center.y + hexSize * Math.sin(angle));
+        }
+        
+        cachedPolygon = new java.awt.Polygon(xPoints, yPoints, 6);
+        lastHexSize = hexSize;
+        lastXOffset = xOffset;
+        lastYOffset = yOffset;
+        
+        return cachedPolygon;
+    }
+    
+    /**
+     * Проверка попадания точки в гекс.
+     */
+    public boolean contains(int mouseX, int mouseY, int hexSize, int xOffset, int yOffset) {
+        return getPolygon(hexSize, xOffset, yOffset).contains(mouseX, mouseY);
+    }
+    
+    /**
+     * Расстояние до другого гекса в гексах (используя axial координаты).
+     */
+    public int distanceTo(Hex other) {
+        return (Math.abs(q - other.q) + 
+                Math.abs(r - other.r) + 
+                Math.abs((-q-r) - (-other.q-other.r))) / 2;
+    }
+    
+    /**
+     * Получить соседние гексы в offset координатах.
+     */
+    public java.util.List<Hex> getNeighbors() {
+        java.util.List<Hex> neighbors = new java.util.ArrayList<>(6);
+        // Направления для odd-r раскладки
+        int[][] directions;
+        if ((row & 1) == 0) {
+            // Четный ряд
+            directions = new int[][]{{-1, 0}, {0, -1}, {1, -1}, {1, 0}, {0, 1}, {-1, 1}};
+        } else {
+            // Нечетный ряд
+            directions = new int[][]{{-1, 0}, {-1, -1}, {0, -1}, {1, 0}, {0, 1}, {-1, 1}};
+        }
+        
         for (int[] d : directions) {
-            neighbors.add(new Hex(q + d[0], r + d[1]));
+            neighbors.add(new Hex(col + d[0], row + d[1]));
         }
         return neighbors;
     }
@@ -76,8 +168,8 @@ public class Hex {
         armies.remove(army);
     }
     
-    public List<Army> getArmies() {
-        return new ArrayList<>(armies);
+    public java.util.List<Army> getArmies() {
+        return new java.util.ArrayList<>(armies);
     }
     
     public boolean hasEnemyArmy(String myCountryId) {
@@ -103,16 +195,16 @@ public class Hex {
         if (this == o) return true;
         if (!(o instanceof Hex)) return false;
         Hex hex = (Hex) o;
-        return q == hex.q && r == hex.r;
+        return col == hex.col && row == hex.row;
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(q, r);
+        return Objects.hash(col, row);
     }
     
     @Override
     public String toString() {
-        return String.format("Hex(%d,%d) [%s]", q, r, terrain);
+        return String.format("Hex[%d,%d](%d,%d) [%s]", col, row, q, r, terrain);
     }
 }

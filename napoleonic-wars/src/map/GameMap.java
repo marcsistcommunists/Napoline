@@ -21,13 +21,23 @@ public class GameMap {
     private void generateBaseMap() {
         Random rand = new Random(42); // Фиксированный seed для воспроизводимости
         
-        for (int q = -radius; q <= radius; q++) {
-            int r1 = Math.max(-radius, -q - radius);
-            int r2 = Math.min(radius, -q + radius);
-            for (int r = r1; r <= r2; r++) {
-                Hex hex = new Hex(q, r, randomTerrain(rand));
-                String key = getHexKey(q, r);
-                hexes.put(key, hex);
+        // Используем col, row вместо q, r для конструктора Hex
+        // Генерируем прямоугольную сетку с гексагональным смещением
+        int mapWidth = radius * 2 + 1;
+        int mapHeight = radius * 2 + 1;
+        
+        for (int row = 0; row < mapHeight; row++) {
+            for (int col = 0; col < mapWidth; col++) {
+                // Конвертируем col, row в axial q, r для проверки границ круга
+                int q = col - (row - (row & 1)) / 2;
+                int r = row;
+                
+                // Проверяем, находится ли гекс в пределах радиуса (в axial координатах)
+                if (Math.abs(q) + Math.abs(r) + Math.abs(-q - r) <= radius * 3) {
+                    Hex hex = new Hex(col, row, randomTerrain(rand));
+                    String key = getHexKey(col, row);
+                    hexes.put(key, hex);
+                }
             }
         }
     }
@@ -43,12 +53,12 @@ public class GameMap {
         return TerrainType.ROAD;
     }
     
-    public static String getHexKey(int q, int r) {
-        return q + "," + r;
+    public static String getHexKey(int col, int row) {
+        return col + "," + row;
     }
     
-    public Hex getHex(int q, int r) {
-        return hexes.get(getHexKey(q, r));
+    public Hex getHex(int col, int row) {
+        return hexes.get(getHexKey(col, row));
     }
     
     public Hex getHex(String key) {
@@ -61,10 +71,20 @@ public class GameMap {
     
     public List<Hex> getNeighbors(Hex hex) {
         List<Hex> neighbors = new ArrayList<>();
-        for (Hex n : hex.getNeighbors()) {
-            Hex existing = getHex(n.q, n.r);
-            if (existing != null) {
-                neighbors.add(existing);
+        // Соседи для odd-r горизонтальной раскладки
+        int[][] directions;
+        if ((hex.getRow() & 1) == 0) {
+            // Четный ряд
+            directions = new int[][]{{-1, 0}, {0, -1}, {1, -1}, {1, 0}, {0, 1}, {-1, 1}};
+        } else {
+            // Нечетный ряд
+            directions = new int[][]{{-1, 0}, {-1, -1}, {0, -1}, {1, 0}, {0, 1}, {-1, 1}};
+        }
+        
+        for (int[] dir : directions) {
+            Hex neighbor = getHex(hex.getCol() + dir[0], hex.getRow() + dir[1]);
+            if (neighbor != null) {
+                neighbors.add(neighbor);
             }
         }
         return neighbors;
