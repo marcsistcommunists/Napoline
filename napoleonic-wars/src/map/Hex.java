@@ -5,7 +5,7 @@ import java.util.*;
 
 /**
  * Гекс - базовая клетка глобальной карты.
- * Использует flat-top ориентацию (плоская вершина сверху) со смещением по столбцам (odd-q).
+ * Использует pointy-top ориентацию (остриё вверх) со смещением по столбцам (odd-q).
  * Это даёт классическую "вертикальную" сетку как в Civilization с явными столбцами.
  */
 public class Hex {
@@ -39,7 +39,7 @@ public class Hex {
     public Hex(int col, int row) {
         this.col = col;
         this.row = row;
-        // Конвертация из offset (odd-q) в axial для flat-top
+        // Конвертация из offset (odd-q) в axial для pointy-top
         this.q = col;
         this.r = row - (col - (col & 1)) / 2;
         this.terrain = TerrainType.PLAIN;
@@ -48,7 +48,7 @@ public class Hex {
     public Hex(int col, int row, TerrainType terrain) {
         this.col = col;
         this.row = row;
-        // Конвертация из offset (odd-q) в axial для flat-top
+        // Конвертация из offset (odd-q) в axial для pointy-top
         this.q = col;
         this.r = row - (col - (col & 1)) / 2;
         this.terrain = terrain;
@@ -64,7 +64,7 @@ public class Hex {
     
     /**
      * Получить центр гекса в пикселях.
-     * Для flat-top: ширина = 2*size, высота = sqrt(3)*size
+     * Для pointy-top: ширина = sqrt(3)*size, высота = 2*size
      * Нечетные столбцы сдвинуты вниз на половину высоты
      */
     public java.awt.Point getCenter(int hexSize, int xOffset, int yOffset) {
@@ -73,12 +73,12 @@ public class Hex {
             return cachedCenter;
         }
         
-        // Размеры для flat-top гекса
-        double width = hexSize * 2;              // Ширина гекса
-        double height = hexSize * Math.sqrt(3);  // Расстояние по вертикали между центрами
+        // Размеры для pointy-top гекса
+        double width = hexSize * Math.sqrt(3);   // Расстояние по горизонтали между центрами
+        double height = hexSize * 2;             // Высота гекса
         
-        // X позиция: номер столбца * 3/4 ширины (перекрытие)
-        double x = xOffset + width * 0.75 * col + width / 2;
+        // X позиция: номер столбца * ширину
+        double x = xOffset + width * col + width / 2;
         
         // Y позиция: просто номер ряда * высоту
         double y = yOffset + height * row + height / 2;
@@ -98,7 +98,7 @@ public class Hex {
     
     /**
      * Получить полигон гекса для отрисовки.
-     * Flat-top: плоская вершина сверху, углы: 0°, 60°, 120°, 180°, 240°, 300°
+     * Pointy-top: острая вершина сверху, углы: 30°, 90°, 150°, 210°, 270°, 330°
      */
     public java.awt.Polygon getPolygon(int hexSize, int xOffset, int yOffset) {
         if (cachedPolygon != null && lastHexSize == hexSize && 
@@ -110,7 +110,7 @@ public class Hex {
         int[] xPoints = new int[6];
         int[] yPoints = new int[6];
         
-        // Углы для flat-top гекса: начинаем с правой вершины (0°) и идём против часовой
+        // Углы для pointy-top гекса: начинаем с верхней вершины (30°) и идём по часовой
         for (int i = 0; i < 6; i++) {
             double angle = Math.toRadians(30 + 60 * i);
             xPoints[i] = (int)Math.round(center.x + hexSize * Math.cos(angle));
@@ -143,11 +143,11 @@ public class Hex {
     
     /**
      * Получить соседние гексы в offset координатах.
-     * Для odd-q раскладки с flat-top ориентацией направления зависят от четности столбца.
+     * Для odd-q раскладки с pointy-top ориентацией направления зависят от четности столбца.
      */
     public java.util.List<Hex> getNeighbors() {
         java.util.List<Hex> neighbors = new java.util.ArrayList<>(6);
-        // Направления для odd-q раскладки (flat-top, смещение по столбцам)
+        // Направления для odd-q раскладки (pointy-top, смещение по столбцам)
         int[][] directions;
         if ((col & 1) == 0) {
             // Четный столбец
