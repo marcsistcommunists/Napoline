@@ -1,53 +1,21 @@
-```
-# Compiled files
 *.class
 *.o
 *.obj
 *.out
-
-# Dependencies
-lib/
-libs/
-dependencies/
-
-# Build artifacts
 build/
 target/
-dist/
-out/
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
+.gradle/
+.mypy_cache/
+.pytest_cache/
+coverage/
+htmlcov/
 *.log
-
-# Environment
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
 .env
 .env.local
 *.env.*
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Temp files
-*.tmp
-*.temp
-*~
-.DS_Store
-Thumbs.db
-
-# Package management
-.gradle/
-node_modules/
-venv/
-.venv/
-__pycache__/
-.mypy_cache/
-.pytest_cache/
-```
+.vscode/
+.idea/
