@@ -1,29 +1,53 @@
 ```
-# Compiled Java classes
+# Compiled files
 *.class
-
-# Build output directory
-out/
+*.o
+*.obj
+*.out
 
 # Dependencies
 lib/
 libs/
+dependencies/
 
-# Logs and temp files
+# Build artifacts
+build/
+target/
+dist/
+out/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
 *.log
-*.tmp
 
 # Environment
 .env
 .env.local
 *.env.*
 
-# Editors
-.vscode/
-.idea/
-*.swp
+# Coverage
+coverage/
+htmlcov/
+.coverage
 
-# OS generated files
+# Temp files
+*.tmp
+*.temp
+*~
 .DS_Store
 Thumbs.db
+
+# Package management
+.gradle/
+node_modules/
+venv/
+.venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
 ```

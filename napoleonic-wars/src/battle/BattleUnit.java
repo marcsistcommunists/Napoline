@@ -64,6 +64,6 @@ public class BattleUnit {
     @Override
     public String toString() {
         return String.format("BattleUnit(%s) at (%d,%d)", 
-            regiment.getTypeId(), position.q, position.r);
+            regiment.getTypeId(), position.getQ(), position.getR());
     }
 }

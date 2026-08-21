@@ -39,8 +39,8 @@ public class Main {
             for (var army : game.getArmies()) {
                 System.out.printf("  %s [%s] at (%d,%d) - %d regiments%n",
                     army.getName(), army.getCountryId(),
-                    army.getPosition() != null ? army.getPosition().q : 0,
-                    army.getPosition() != null ? army.getPosition().r : 0,
+                    army.getPosition() != null ? army.getPosition().getQ() : 0,
+                    army.getPosition() != null ? army.getPosition().getR() : 0,
                     army.getRegimentCount());
                 
                 for (var reg : army.getRegiments()) {
