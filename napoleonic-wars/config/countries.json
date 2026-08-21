@@ -1,0 +1,47 @@
+[
+  {
+    "id": "france",
+    "name": "Франция",
+    "leader": "Наполеон Бонапарт",
+    "flagPath": "images/flags/france.png",
+    "color": "0000FF",
+    "initialRegions": ["ile_de_france", "alsace"],
+    "availableUnitTypes": ["line_infantry", "light_infantry", "grenadiers", "cuirassiers", "dragoons", "uhlans", "artillery"]
+  },
+  {
+    "id": "britain",
+    "name": "Великобритания",
+    "leader": "Герцог Веллингтон",
+    "flagPath": "images/flags/britain.png",
+    "color": "FF0000",
+    "initialRegions": ["london", "scotland"],
+    "availableUnitTypes": ["line_infantry", "light_infantry", "grenadiers", "cuirassiers", "dragoons", "artillery"]
+  },
+  {
+    "id": "austria",
+    "name": "Австрия",
+    "leader": "Эрцгерцог Карл",
+    "flagPath": "images/flags/austria.png",
+    "color": "FFFF00",
+    "initialRegions": ["vienna", "bohemia"],
+    "availableUnitTypes": ["line_infantry", "light_infantry", "grenadiers", "cuirassiers", "dragoons", "uhlans", "artillery"]
+  },
+  {
+    "id": "prussia",
+    "name": "Пруссия",
+    "leader": "Гебхард фон Блюхер",
+    "flagPath": "images/flags/prussia.png",
+    "color": "808080",
+    "initialRegions": ["berlin", "silesia"],
+    "availableUnitTypes": ["line_infantry", "light_infantry", "grenadiers", "cuirassiers", "dragoons", "uhlans", "artillery"]
+  },
+  {
+    "id": "russia",
+    "name": "Россия",
+    "leader": "Михаил Кутузов",
+    "flagPath": "images/flags/russia.png",
+    "color": "008000",
+    "initialRegions": ["moscow", "smolensk"],
+    "availableUnitTypes": ["line_infantry", "light_infantry", "grenadiers", "cuirassiers", "dragoons", "uhlans", "artillery"]
+  }
+]

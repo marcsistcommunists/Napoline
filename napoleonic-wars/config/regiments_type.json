@@ -1,0 +1,79 @@
+[
+  {
+    "id": "line_infantry",
+    "name": "Линейная пехота",
+    "health": 100,
+    "damage": 20,
+    "range": 2,
+    "speed": 2,
+    "cost": 100,
+    "slots": ["weapon", "flag", "bonus"],
+    "imageDirectory": "images/units/{country}/line_infantry/"
+  },
+  {
+    "id": "light_infantry",
+    "name": "Лёгкая пехота",
+    "health": 80,
+    "damage": 18,
+    "range": 3,
+    "speed": 3,
+    "cost": 90,
+    "slots": ["weapon", "flag", "bonus"],
+    "imageDirectory": "images/units/{country}/light_infantry/"
+  },
+  {
+    "id": "grenadiers",
+    "name": "Гренадёры",
+    "health": 120,
+    "damage": 25,
+    "range": 2,
+    "speed": 2,
+    "cost": 140,
+    "slots": ["weapon", "flag", "bonus"],
+    "imageDirectory": "images/units/{country}/grenadiers/"
+  },
+  {
+    "id": "cuirassiers",
+    "name": "Кирасиры",
+    "health": 130,
+    "damage": 30,
+    "range": 1,
+    "speed": 3,
+    "cost": 160,
+    "slots": ["weapon", "flag", "horse"],
+    "imageDirectory": "images/units/{country}/cuirassiers/"
+  },
+  {
+    "id": "dragoons",
+    "name": "Драгуны",
+    "health": 100,
+    "damage": 24,
+    "range": 1,
+    "speed": 4,
+    "cost": 130,
+    "slots": ["weapon", "flag", "horse"],
+    "imageDirectory": "images/units/{country}/dragoons/"
+  },
+  {
+    "id": "uhlans",
+    "name": "Уланы",
+    "health": 85,
+    "damage": 22,
+    "range": 1,
+    "speed": 5,
+    "cost": 110,
+    "slots": ["weapon", "flag", "horse"],
+    "imageDirectory": "images/units/{country}/uhlans/"
+  },
+  {
+    "id": "artillery",
+    "name": "Артиллерия",
+    "health": 60,
+    "damage": 40,
+    "range": 5,
+    "speed": 1,
+    "cost": 180,
+    "slots": ["cannon", "horse", "bonus"],
+    "imageDirectory": "images/units/{country}/artillery/"
+  }
+]
