@@ -112,7 +112,7 @@ public class Hex {
         
         // Углы для flat-top гекса: начинаем с правой вершины (0°) и идём против часовой
         for (int i = 0; i < 6; i++) {
-            double angle = Math.toRadians(60 * i);
+            double angle = Math.toRadians(30 + 60 * i);
             xPoints[i] = (int)Math.round(center.x + hexSize * Math.cos(angle));
             yPoints[i] = (int)Math.round(center.y + hexSize * Math.sin(angle));
         }
