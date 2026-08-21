@@ -154,6 +154,14 @@ public class GameMap {
         return radius;
     }
     
+    public int getWidth() {
+        return radius * 2 + 1;
+    }
+    
+    public int getHeight() {
+        return radius * 2 + 1;
+    }
+    
     /**
      * Получить все гексы в пределах диапазона от центрального.
      */
