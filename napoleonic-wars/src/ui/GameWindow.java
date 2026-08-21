@@ -111,34 +111,13 @@ public class GameWindow extends JFrame {
                     Hex hex = game.getGameMap().getHex(q, r);
                     if (hex == null) continue;
                     
-                    // Вычисляем экранные координаты центра
-                    // Для нечетных столбцов сдвиг по Y на половину высоты
-                    int xOffset = q * DX;
-                    int yOffset = r * DY;
-                    if (q % 2 == 1) {
-                        yOffset += DY / 2;
-                    }
-                    
-                    int centerX = startX + xOffset;
-                    int centerY = startY + yOffset;
-                    
-                    drawHex(g2d, hex, centerX, centerY);
+                    drawHex(g2d, hex, startX, startY);
                 }
             }
             
             // Отрисовка выделения
             if (selectedHex != null) {
-                // Находим экранные координаты для выделенного гекса
-                int q = selectedHex.getQ();
-                int r = selectedHex.getR();
-                int xOffset = q * DX;
-                int yOffset = r * DY;
-                if (q % 2 == 1) {
-                    yOffset += DY / 2;
-                }
-                int centerX = startX + xOffset;
-                int centerY = startY + yOffset;
-                drawHexHighlight(g2d, selectedHex, centerX, centerY, Color.YELLOW);
+                drawHexHighlight(g2d, selectedHex, startX, startY, Color.YELLOW);
             }
         }
         
@@ -241,23 +220,13 @@ public class GameWindow extends JFrame {
             
             // Поиск ближайшего гекса
             Hex closestHex = null;
-            int minDistance = Integer.MAX_VALUE;
             
             for (int q = 0; q < game.getGameMap().getWidth(); q++) {
                 for (int r = 0; r < game.getGameMap().getHeight(); r++) {
                     Hex hex = game.getGameMap().getHex(q, r);
                     if (hex == null) continue;
                     
-                    // Вычисляем экранные координаты центра
-                    int xOffset = q * DX;
-                    int yOffset = r * DY;
-                    if (q % 2 == 1) {
-                        yOffset += DY / 2;
-                    }
-                    int centerX = startX + xOffset;
-                    int centerY = startY + yOffset;
-                    
-                    if (hex.contains(e.getX(), e.getY(), HEX_SIZE, centerX, centerY)) {
+                    if (hex.contains(e.getX(), e.getY(), HEX_SIZE, startX, startY)) {
                         closestHex = hex;
                         break;
                     }
